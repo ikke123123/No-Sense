@@ -8,8 +8,8 @@ public class BoardScript : MonoBehaviour
     public GameObject whitePiecePrefab;
     public GameObject blackPiecePrefab;
 
-    private Vector3 boardOffset = new Vector3(-7.5f, 0, -7.5f);
-    private Vector3 pieceOffset = new Vector3(0.5f, 1.15f, 0.5f);
+    private Vector3 boardOffset = new Vector3(-7.45f, 0, -7.45f);
+    private Vector3 pieceOffset = new Vector3(0.5f, 1.15f, 0.4f);
 
     private void Start()
     {
@@ -17,6 +17,7 @@ public class BoardScript : MonoBehaviour
     }
     private void GenerateBoard()
     {
+        //white
         for (int y = 0; y < 3; y++)
         {
             bool oddRow = (y % 2 == 0);
@@ -25,7 +26,7 @@ public class BoardScript : MonoBehaviour
                 GeneratePiece((oddRow) ? x : x+1, y);
             }
         }
-
+        //black
         for (int y = 7; y > 4; y--)
         {
             bool oddRow = (y % 2 == 0);
