@@ -32,12 +32,13 @@ public class BoardSpawnScript : MonoBehaviour
         return tempList;
     }
 
-    private Piece GeneratePiece(Location location, Team type)
+    private Piece GeneratePiece(Location location, Team team)
     {
-        GameObject tempObject = Instantiate((type == Team.White) ? whitePiecePrefab : blackPiecePrefab);
+        GameObject tempObject = Instantiate((team == Team.White) ? whitePiecePrefab : blackPiecePrefab);
         location.isOccupied = true;
         Piece tempPiece = tempObject.GetComponent<Piece>();
         tempPiece.location = location;
+        tempPiece.team = team;
         location.piece = tempPiece;
         tempObject.transform.position = location.position;
         return tempPiece;

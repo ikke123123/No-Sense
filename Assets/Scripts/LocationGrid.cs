@@ -12,7 +12,7 @@ public class LocationGrid
         if (width == 0 || depth == 0) return;
         locations = new Location[width, depth];
         bool falseLocation = true;
-        Vector3 basePos = new Vector3(-0.5f * width * scale + 0.5f * scale, 1.25f, -0.5f * depth * scale + 0.5f * scale);
+        Vector3 basePos = new Vector3(-0.5f * width * scale + ((width % 2 == 0) ? 0.5f * scale : 0), 1.25f, -0.5f * depth * scale + ((depth % 2 == 0) ? 0.5f * scale : 0));
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < depth; j++)
