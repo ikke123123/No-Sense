@@ -4,15 +4,14 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [HideInInspector] public Location location;
 
-    // Update is called once per frame
-    void Update()
+    public bool MoveTo(Location target)
     {
-        
+        if (target.isOccupied) return false; 
+        location.LeaveLocation();
+        target.OccupyLocation(this);
+        transform.position = target.position;
+        return true;
     }
 }

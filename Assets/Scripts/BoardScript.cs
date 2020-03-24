@@ -51,5 +51,4 @@ public class BoardScript : MonoBehaviour
     {
         p.transform.position = (Vector3.right * x * 2) + (Vector3.forward * y * 2) + boardOffset + pieceOffset;
     }
-
 }
