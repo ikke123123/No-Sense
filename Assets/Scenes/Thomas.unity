@@ -147,7 +147,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 95319786}
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -0.95819414, y: -23.266243, z: 8.824914}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -169,12 +169,10 @@ MonoBehaviour:
   gridDepth: 8
   boardSpawn: {fileID: 95319789}
   possibleMove: 0
-  number: 0
-  runCheck: 0
-  team: 0
   turn: 1
   whiteObjects: []
   blackObjects: []
+  gameEnded: 0
 --- !u!114 &95319789
 MonoBehaviour:
   m_ObjectHideFlags: 0
