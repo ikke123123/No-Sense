@@ -23,6 +23,7 @@ public class LocationKeeper : MonoBehaviour
     public GameObject WhiteWin;
     bool restart = false;
     float timeLeft = 6.0f;
+    float timer = 1;
 
     private PossibleMove[] turnMoves;
 
@@ -40,16 +41,24 @@ public class LocationKeeper : MonoBehaviour
 
     private void Update()
     {
-        if (possibleMove == true)
+        timer -= Time.deltaTime;
+        if (timer <= 0)
         {
-            //if (number < turnMoves.Length && number > -1) ExecuteMove(turnMoves[number]);
-            ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
+            if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
             possibleMove = false;
+            timer = 1;
         }
-        //if (runCheck == true)
+        //if (possibleMove == true)
         //{
-        //    CheckMoves(Team.White);
-        //    runCheck = false;
+        //    //if (number < turnMoves.Length && number > -1) ExecuteMove(turnMoves[number]);
+        //    if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
+        //    possibleMove = false;
+        //}
+        //if (possibleMove == false)
+        //{
+        //    //if (number < turnMoves.Length && number > -1) ExecuteMove(turnMoves[number]);
+        //    if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
+        //    possibleMove = false;
         //}
         if (restart == true)
         {
@@ -59,7 +68,6 @@ public class LocationKeeper : MonoBehaviour
                 ResetMatch();
             }
         }
-        
     }
 
     private void ExecuteMove(PossibleMove possibleMove)
@@ -119,6 +127,7 @@ public class LocationKeeper : MonoBehaviour
     {
         BlackWin.SetActive(false);
         WhiteWin.SetActive(false);
+        timeLeft = 6;
         restart = false;
         foreach (Piece piece in whiteObjects) Destroy(piece.gameObject);
         foreach (Piece piece in blackObjects) Destroy(piece.gameObject);
