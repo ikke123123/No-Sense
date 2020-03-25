@@ -19,6 +19,11 @@ public class LocationKeeper : MonoBehaviour
     [HideInInspector] public List<Piece> whiteObjects;
     [HideInInspector] public List<Piece> blackObjects;
 
+    public GameObject BlackWin;
+    public GameObject WhiteWin;
+    bool restart = false;
+    float timeLeft = 6.0f;
+
     private PossibleMove[] turnMoves;
 
     private void Awake()
@@ -46,6 +51,15 @@ public class LocationKeeper : MonoBehaviour
         //    CheckMoves(Team.White);
         //    runCheck = false;
         //}
+        if (restart == true)
+        {
+            timeLeft -= Time.deltaTime;
+            if (timeLeft < 0)
+            {
+                ResetMatch();
+            }
+        }
+        
     }
 
     private void ExecuteMove(PossibleMove possibleMove)
@@ -89,12 +103,23 @@ public class LocationKeeper : MonoBehaviour
     public void EndGame(string input)
     {
         Debug.Log("Game has ended: " + input);
+        if (turn == Team.Black)
+        {
+            WhiteWin.SetActive(true);
+        }
+        else if (turn == Team.White) 
+        {
+            BlackWin.SetActive(true);
+        }
         toDoWhenFinished.Invoke();
-        ResetMatch();
+        restart = true;
     }
 
     public void ResetMatch()
     {
+        BlackWin.SetActive(false);
+        WhiteWin.SetActive(false);
+        restart = false;
         foreach (Piece piece in whiteObjects) Destroy(piece.gameObject);
         foreach (Piece piece in blackObjects) Destroy(piece.gameObject);
         whiteObjects.Clear();
