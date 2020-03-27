@@ -53,12 +53,12 @@ public class LocationKeeper : MonoBehaviour
         { 
             if (turn == Team.Black)
             {
-                if (blackThomas == null) DeyvidAI.RequestDecision();
+                if (blackThomas == null) blackDeyvid.RequestDecision();
                 else blackThomas.RequestDecision();
             }
             else
             {
-                if (whiteThomas == null) DeyvidAI.RequestDecision();
+                if (whiteThomas == null) whiteDeyvid.RequestDecision();
                 else whiteThomas.RequestDecision();
             }
             timer = 1;

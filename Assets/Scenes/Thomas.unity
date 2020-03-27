@@ -169,9 +169,11 @@ MonoBehaviour:
   gridDepth: 8
   boardSpawn: {fileID: 95319789}
   blackThomas: {fileID: 686247242}
-  whiteThomas: {fileID: 173695354}
-  BlackWin: {fileID: 103548124}
-  WhiteWin: {fileID: 1629674118}
+  whiteThomas: {fileID: 0}
+  blackDeyvid: {fileID: 0}
+  whiteDeyvid: {fileID: 173695355}
+  blackWins: {fileID: 103548124}
+  whiteWins: {fileID: 1629674118}
   toDoWhenFinished:
     m_PersistentCalls:
       m_Calls: []
@@ -282,6 +284,7 @@ GameObject:
   m_Component:
   - component: {fileID: 173695353}
   - component: {fileID: 173695354}
+  - component: {fileID: 173695355}
   m_Layer: 0
   m_Name: White Agent
   m_TagString: Untagged
@@ -313,6 +316,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29e59ba2e190ae24b80b71fa782cbee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationKeeper: {fileID: 95319788}
+  team: 1
+--- !u!114 &173695355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173695352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab5f55c8bafa64b48a6f9e392a99cf95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   locationKeeper: {fileID: 95319788}
@@ -686,6 +703,7 @@ GameObject:
   m_Component:
   - component: {fileID: 686247244}
   - component: {fileID: 686247242}
+  - component: {fileID: 686247243}
   m_Layer: 0
   m_Name: Black Agent
   m_TagString: Untagged
@@ -703,6 +721,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29e59ba2e190ae24b80b71fa782cbee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationKeeper: {fileID: 95319788}
+  team: 0
+--- !u!114 &686247243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 686247241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab5f55c8bafa64b48a6f9e392a99cf95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   locationKeeper: {fileID: 95319788}
