@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
-using MLAgents;
 
 public class LocationKeeper : MonoBehaviour
 {
@@ -19,6 +18,7 @@ public class LocationKeeper : MonoBehaviour
     [Header("Win Text")]
     [SerializeField] private GameObject BlackWin = null;
     [SerializeField] private GameObject WhiteWin = null;
+    [SerializeField] private GameObject draw = null;
 
     [Header("Misc")]
     [SerializeField] private UnityEvent toDoWhenFinished = null;

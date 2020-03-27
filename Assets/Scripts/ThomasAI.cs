@@ -10,6 +10,9 @@ public class ThomasAI : MonoBehaviour
     private List<Piece> enemyPieces;
     private List<Piece> friendlyPieces;
 
+    private int whiteTurnsCounter = 0;
+    private int blackTurnsCounter = 0;
+
     private void Start()
     {
         enemyPieces = (team == Team.White) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
@@ -22,25 +25,32 @@ public class ThomasAI : MonoBehaviour
         List<PossibleMove> badMoves = new List<PossibleMove>();
         List<PossibleMove> goodMoves = new List<PossibleMove>();
 
-        foreach (PossibleMove possibleMove in possibleMoves)
+        if (friendlyPieces.Count > 1)
         {
-            if (CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 0)
+            foreach (PossibleMove possibleMove in possibleMoves)
             {
-                badMoves.Add(possibleMove);
+                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 0 && possibleMove.strike == false)
+                {
+                    badMoves.Add(possibleMove);
+                }
+                else goodMoves.Add(possibleMove);
             }
-            else goodMoves.Add(possibleMove);
+            PossibleMove greatBadMove = ReturnGreatestBadOption(badMoves);
+            PossibleMove greatMove = ReturnGreatestOption(goodMoves.ToArray());
+
+            //Debug.Log(badMoves.Count.ToString() + " " + goodMoves.Count.ToString() + " " + greatMove + " " + greatBadMove);
+
+            //Execute move
+            //Debug.Log((greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).fromLocation.gridLocation.ToString() + (greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).toLocation.gridLocation.ToString() + (greatMove != null ? "GreatMove" : (goodMoves.Count > 0 ? "GoodMove" : (greatBadMove != null ? "GreatBadMove" : "BadMove"))));
+            locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
         }
-        PossibleMove greatBadMove = ReturnGreatestBadOption(badMoves);
-        PossibleMove greatMove = ReturnGreatestOption(goodMoves.ToArray());
-
-        Debug.Log(badMoves.Count.ToString() + " " + goodMoves.Count.ToString() + " " + greatMove + " " + greatBadMove);
-
-        //Execute move
-        Debug.Log((greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).fromLocation.gridLocation.ToString() + (greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).toLocation.gridLocation.ToString() + (greatMove != null ? "GreatMove" : (goodMoves.Count > 0 ? "GoodMove" : (greatBadMove != null ? "GreatBadMove" : "BadMove"))));
-        locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
+        else
+        {
+            locationKeeper.ExecuteMove(possibleMoves[Random.Range(0, possibleMoves.Length)]);
+        }
     }
 
-    private PossibleMove ReturnGreatestOption(PossibleMove[] goodMoves, int highNumber = 0)
+    private PossibleMove ReturnGreatestOption(PossibleMove[] goodMoves)
     {
         PossibleMove greatestMove = null;
         foreach (PossibleMove possibleMove in goodMoves)
