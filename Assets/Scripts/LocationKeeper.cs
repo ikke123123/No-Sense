@@ -50,20 +50,17 @@ public class LocationKeeper : MonoBehaviour
     {
         timer -= Time.deltaTime;
         if (timer <= 0 && restart == false)
-        {
-            if (turn == Team.Black) blackThomas.RequestDecision();
-            else whiteThomas.RequestDecision();
-
-            //if (turn == Team.Black)
-            //{
-            //    if (blackThomas == null) DeyvidAI.RequestDecision();
-            //    else blackThomas.RequestDecision();
-            //}
-            //else
-            //{
-            //    if (whiteThomas == null) DeyvidAI.RequestDecision();
-            //    else whiteThomas.RequestDecision();
-            //}
+        { 
+            if (turn == Team.Black)
+            {
+                if (blackThomas == null) DeyvidAI.RequestDecision();
+                else blackThomas.RequestDecision();
+            }
+            else
+            {
+                if (whiteThomas == null) DeyvidAI.RequestDecision();
+                else whiteThomas.RequestDecision();
+            }
             timer = 1;
         }
         if (restart == true)
