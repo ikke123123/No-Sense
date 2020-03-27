@@ -13,9 +13,21 @@ public class Piece : MonoBehaviour
     [HideInInspector] public bool isSpecialPiece = false;
     [HideInInspector] public Team team;
 
-    private void Update()
+    private Vector3 targetPosition;
+    private float speed = 0;
+    private float step = 0;
+    private float speedTarget = 0;
+
+    private void Start()
+    {
+        targetPosition = location.position;
+    }
+
+    private void FixedUpdate()
     {
         gridLocation = location.gridLocation;
+        speed += speed >= speedTarget ? -step : step;
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed);
     }
 
     public bool MoveTo(Location target)
@@ -23,7 +35,10 @@ public class Piece : MonoBehaviour
         if (target.isOccupied) return false; 
         location.LeaveLocation();
         target.OccupyLocation(this);
-        transform.position = target.position;
+        targetPosition = target.position;
+        speed = 0;
+        step = Vector3.Distance(transform.position, targetPosition) / 45;
+        speedTarget = step * 2;
         location = target;
         return true;
     }

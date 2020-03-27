@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3734317919804383636}
   - component: {fileID: 3734317919803384660}
   - component: {fileID: -2352929268717335958}
+  - component: {fileID: -1970454325676854797}
   m_Layer: 0
   m_Name: checker
   m_TagString: Untagged
@@ -59,8 +60,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6dd29f2903bcf104caa0499f9ae05f67, type: 3}
-  - {fileID: 2100002, guid: 6dd29f2903bcf104caa0499f9ae05f67, type: 3}
+  - {fileID: 2100000, guid: 194524517aaa1a94d9a12aed82f4b832, type: 2}
+  - {fileID: 2100000, guid: 6735554a61bf1064ba2e0164427e8846, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -94,5 +95,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 3734317919805586836}
+  gridLocation: {x: 0, y: 0}
   isSpecialPiece: 0
   team: 0
+--- !u!95 &-1970454325676854797
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3734317919805586836}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ce0afe846d5984745a2942895c699b35, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0

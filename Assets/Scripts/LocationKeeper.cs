@@ -3,29 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using MLAgents;
 
 public class LocationKeeper : MonoBehaviour
 {
+    [Header("Grid Spawning")]
     [SerializeField, Range(1, 15)] private int gridWidth = 1;
     [SerializeField, Range(1, 15)] private int gridDepth = 1;
     [SerializeField] private BoardSpawnScript boardSpawn = null;
-    [SerializeField] private bool possibleMove = false;
+
+    [Header("AI")]
+    [SerializeField] private ThomasAI black = null;
+    [SerializeField] private ThomasAI white = null;
+
+    [Header("Win Text")]
+    [SerializeField] private GameObject BlackWin = null;
+    [SerializeField] private GameObject WhiteWin = null;
+
+    [Header("Misc")]
     [SerializeField] private UnityEvent toDoWhenFinished = null;
-    //[SerializeField] private int number = 0; 
-    //[SerializeField] private bool runCheck = false;
 
     [HideInInspector] public Team turn = Team.White;
     [HideInInspector] public LocationGrid locationGrid = new LocationGrid();
     [HideInInspector] public List<Piece> whiteObjects;
     [HideInInspector] public List<Piece> blackObjects;
+    [HideInInspector] public PossibleMove[] turnMoves;
+    [HideInInspector] public bool restart = false;
 
-    public GameObject BlackWin;
-    public GameObject WhiteWin;
-    bool restart = false;
-    float timeLeft = 6.0f;
-    float timer = 1;
-
-    private PossibleMove[] turnMoves;
+    private float timeLeft = 6.0f;
+    private float timer = 1;
 
     private void Awake()
     {
@@ -42,24 +48,12 @@ public class LocationKeeper : MonoBehaviour
     private void Update()
     {
         timer -= Time.deltaTime;
-        if (timer <= 0)
+        if (timer <= 0 && restart == false)
         {
-            if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
-            possibleMove = false;
+            if (turn == Team.Black) black.RequestDecision();
+            else white.RequestDecision();
             timer = 1;
         }
-        //if (possibleMove == true)
-        //{
-        //    //if (number < turnMoves.Length && number > -1) ExecuteMove(turnMoves[number]);
-        //    if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
-        //    possibleMove = false;
-        //}
-        //if (possibleMove == false)
-        //{
-        //    //if (number < turnMoves.Length && number > -1) ExecuteMove(turnMoves[number]);
-        //    if (restart == false) ExecuteMove(turnMoves[Random.Range(0, turnMoves.Length)]);
-        //    possibleMove = false;
-        //}
         if (restart == true)
         {
             timeLeft -= Time.deltaTime;
@@ -70,7 +64,7 @@ public class LocationKeeper : MonoBehaviour
         }
     }
 
-    private void ExecuteMove(PossibleMove possibleMove)
+    public void ExecuteMove(PossibleMove possibleMove)
     {
         if (possibleMove.strike) DestroyPiece(possibleMove.hitPiece);
         possibleMove.piece.MoveTo(possibleMove.toLocation);
@@ -277,25 +271,20 @@ public class LocationKeeper : MonoBehaviour
                 }
             }
         }
-        //Debug
-        //foreach (PossibleMove possibleMove1 in possibleMoves)
-        //{
-        //    Debug.Log(possibleMove1.fromLocation.gridLocation.ToString() + " " + possibleMove1.toLocation.gridLocation.ToString() + " " + team.ToString());
-        //}
         return possibleMoves.ToArray();
     }
 
-    private bool PositionExistsAndIsFree(int x, int y)
+    public bool PositionExistsAndIsFree(int x, int y)
     {
         return ValidGridLocation(x, y) ? (locationGrid.locations[x, y].isOccupied ? false : true) : false;
     }
 
-    private bool OccupiedByFriendly(int x, int y, Team team)
+    public bool OccupiedByFriendly(int x, int y, Team team)
     {
         return (team == Team.Black ? blackObjects : whiteObjects).Contains(locationGrid.locations[x, y].piece);
     }
 
-    private bool ValidGridLocation(int x, int y)
+    public bool ValidGridLocation(int x, int y)
     {
         return (x < locationGrid.locations.GetLength(0) && x > -1) && (y < locationGrid.locations.GetLength(1) && y > -1);
     }
