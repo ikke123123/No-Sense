@@ -14,8 +14,8 @@ public class LocationKeeper : MonoBehaviour
     [Header("AI")]
     [SerializeField] private ThomasAI blackThomas = null;
     [SerializeField] private ThomasAI whiteThomas = null;
-    //[SerializeField] private DeyvidAI blackDeyvid = null;
-    //[SerializeField] private DeyvidAI whiteDeyvid = null;
+    [SerializeField] private DeyvidAI blackDeyvid = null;
+    [SerializeField] private DeyvidAI whiteDeyvid = null;
 
     [Header("Win Text")]
     [SerializeField] private GameObject blackWins = null;
