@@ -17,10 +17,11 @@ public class Piece : MonoBehaviour
     private float speed = 0;
     private float step = 0;
     private float speedTarget = 0;
-
+    AudioSource sound;
     private void Start()
     {
         targetPosition = location.position;
+        sound = GetComponent<AudioSource>();
     }
 
     private void FixedUpdate()
@@ -32,6 +33,7 @@ public class Piece : MonoBehaviour
 
     public bool MoveTo(Location target)
     {
+        sound.Play(0);
         if (target.isOccupied) return false; 
         location.LeaveLocation();
         target.OccupyLocation(this);
