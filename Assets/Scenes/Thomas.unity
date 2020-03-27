@@ -168,8 +168,8 @@ MonoBehaviour:
   gridWidth: 8
   gridDepth: 8
   boardSpawn: {fileID: 95319789}
-  black: {fileID: 0}
-  white: {fileID: 0}
+  black: {fileID: 686247242}
+  white: {fileID: 173695354}
   BlackWin: {fileID: 103548124}
   WhiteWin: {fileID: 1629674118}
   toDoWhenFinished:
@@ -281,6 +281,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 173695353}
+  - component: {fileID: 173695354}
   m_Layer: 0
   m_Name: White Agent
   m_TagString: Untagged
@@ -302,6 +303,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &173695354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173695352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29e59ba2e190ae24b80b71fa782cbee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  locationKeeper: {fileID: 95319788}
+  team: 1
 --- !u!1 &469853635
 GameObject:
   m_ObjectHideFlags: 0
@@ -489,6 +504,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29e59ba2e190ae24b80b71fa782cbee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  locationKeeper: {fileID: 95319788}
+  team: 0
 --- !u!4 &686247244
 Transform:
   m_ObjectHideFlags: 0
