@@ -22,11 +22,11 @@ public class ThomasAI : MonoBehaviour
         List<PossibleMove> badMoves = new List<PossibleMove>();
         List<PossibleMove> goodMoves = new List<PossibleMove>();
 
-        if (friendlyPieces.Count > 1)
+        if (friendlyPieces.Count > 1 || friendlyPieces.Count == 1 && enemyPieces.Count < 3)
         {
             foreach (PossibleMove possibleMove in possibleMoves)
             {
-                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 0 && possibleMove.strike == false)
+                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black, possibleMove).Length > 0 && possibleMove.strike == false)
                 {
                     badMoves.Add(possibleMove);
                 }
@@ -37,8 +37,9 @@ public class ThomasAI : MonoBehaviour
 
             //Debug.Log(badMoves.Count.ToString() + " " + goodMoves.Count.ToString() + " " + greatMove + " " + greatBadMove);
 
-            //Execute move
             //Debug.Log((greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).fromLocation.gridLocation.ToString() + (greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).toLocation.gridLocation.ToString() + (greatMove != null ? "GreatMove" : (goodMoves.Count > 0 ? "GoodMove" : (greatBadMove != null ? "GreatBadMove" : "BadMove"))));
+
+            //Execute move
             locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
         }
         else
@@ -49,56 +50,75 @@ public class ThomasAI : MonoBehaviour
 
     private PossibleMove ReturnGreatestOption(PossibleMove[] goodMoves)
     {
-        PossibleMove greatestMove = null;
         foreach (PossibleMove possibleMove in goodMoves)
         {
-            if (possibleMove.strike && CheckIfStrickenNextTurn(friendlyPieces, possibleMove.toLocation, team).Length > 1)
+            if (possibleMove.strike && CheckIfStrickenNextTurn(friendlyPieces, possibleMove.toLocation, team, possibleMove).Length > 1)
             {
-                greatestMove = possibleMove;
+                return possibleMove;
+            }
+        }
+        foreach (PossibleMove possibleMove in goodMoves)
+        {
+            foreach (Piece piece in friendlyPieces)
+            {
+                foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, piece.location, team == Team.Black ? Team.White : Team.Black, possibleMove))
+                {
+                    if (possibleMove1.strike && possibleMove1.toLocation.gridLocation == possibleMove.toLocation.gridLocation)
+                    {
+                        return possibleMove;
+                    }
+                }
             }
         }
         foreach (PossibleMove possibleMove in goodMoves)
         {
             if (possibleMove.toLocation.gridLocation.x == (team == Team.Black ? 0 : 7) && possibleMove.piece.isSpecialPiece == false)
             {
-                greatestMove = greatestMove == null ? possibleMove : greatestMove;
+                return possibleMove;
             }
         }
         foreach (PossibleMove possibleMove in goodMoves)
         {
             if (possibleMove.toLocation.gridLocation.y == 0 || possibleMove.toLocation.gridLocation.y == 7)
             {
-                greatestMove = greatestMove == null ? possibleMove : greatestMove;
+                return possibleMove;
             }
         }
-        return greatestMove;
+        return null;
     }
 
     private PossibleMove ReturnGreatestBadOption(List<PossibleMove> badMoves)
     {
         PossibleMove greatestOption = null;
+        List<PossibleMove> reallyBadPossibleMoves = new List<PossibleMove>();
         //Run for every bad move
         foreach (PossibleMove possibleMove in badMoves)
         {
             //Check for end locations of enemy strikes on friendly pieces
-            foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black))
+            foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black, possibleMove))
             {
                 //Check for possible counters to that strike
-                foreach (PossibleMove possibleMove2 in CheckIfStrickenNextTurn(friendlyPieces, possibleMove1.toLocation, team))
+                foreach (PossibleMove possibleMove2 in CheckIfStrickenNextTurn(friendlyPieces, possibleMove1.toLocation, team, possibleMove))
                 {
-                    greatestOption = greatestOption == null ? possibleMove : greatestOption;
-                    //Check for the possibility that the enemy is able to strike back after that
-                    if (CheckIfStrickenNextTurn(enemyPieces, possibleMove2.toLocation, team == Team.Black ? Team.White : Team.Black).Length == 0)
-                    {
-                        greatestOption = possibleMove;
-                    }
+                    greatestOption = possibleMove;
                 }
+                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove1.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 1)
+                {
+                    reallyBadPossibleMoves.Add(possibleMove);
+                }
+            }
+        }
+        if (badMoves.Count > reallyBadPossibleMoves.Count)
+        {
+            foreach (PossibleMove reallyBadPossibleMove in reallyBadPossibleMoves)
+            {
+                badMoves.Remove(reallyBadPossibleMove);
             }
         }
         return greatestOption;
     }
 
-    private PossibleMove[] CheckIfStrickenNextTurn(List<Piece> list, Location location, Team team)
+    private PossibleMove[] CheckIfStrickenNextTurn(List<Piece> list, Location location, Team team, PossibleMove possibleMoveFrom = null)
     {
         List<PossibleMove> possibleMoves = new List<PossibleMove>();
 
@@ -120,7 +140,7 @@ public class ThomasAI : MonoBehaviour
                             if (locationKeeper.ValidGridLocation(tempX, tempY))
                             {
                                 Location tempLocation = locationKeeper.locationGrid.locations[tempX, tempY];
-                                if (tempLocation == location && locationKeeper.OccupiedByFriendly(tempX, tempY, team) == false && locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY))
+                                if (tempLocation == location && locationKeeper.OccupiedByFriendly(tempX, tempY, team) == false && (locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY) || possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX, y + tempY] : false))
                                 {
                                     PossibleMove possibleMove = new PossibleMove
                                     {
@@ -155,7 +175,7 @@ public class ThomasAI : MonoBehaviour
                                 if (locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY) == false) break;
                                 int xUltraTemp = 0;
                                 int yUltraTemp = 0;
-                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp))
+                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp) || ((locationKeeper.ValidGridLocation(x + tempX + xUltraTemp, y + tempY + xUltraTemp) && possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX + xUltraTemp, y + tempY + xUltraTemp] : false)))
                                 {
                                     PossibleMove possibleMove = new PossibleMove
                                     {
