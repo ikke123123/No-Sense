@@ -12,8 +12,10 @@ public class LocationKeeper : MonoBehaviour
     [SerializeField] private BoardSpawnScript boardSpawn = null;
 
     [Header("AI")]
-    [SerializeField] private ThomasAI black = null;
-    [SerializeField] private ThomasAI white = null;
+    [SerializeField] private ThomasAI blackThomas = null;
+    [SerializeField] private ThomasAI whiteThomas = null;
+    //[SerializeField] private DeyvidAI blackDeyvid = null;
+    //[SerializeField] private DeyvidAI whiteDeyvid = null;
 
     [Header("Win Text")]
     [SerializeField] private GameObject BlackWin = null;
@@ -50,8 +52,19 @@ public class LocationKeeper : MonoBehaviour
         timer -= Time.deltaTime;
         if (timer <= 0 && restart == false)
         {
-            if (turn == Team.Black) black.RequestDecision();
-            else white.RequestDecision();
+            if (turn == Team.Black) blackThomas.RequestDecision();
+            else whiteThomas.RequestDecision();
+
+            //if (turn == Team.Black)
+            //{
+            //    if (blackThomas == null) DeyvidAI.RequestDecision();
+            //    else blackThomas.RequestDecision();
+            //}
+            //else
+            //{
+            //    if (whiteThomas == null) DeyvidAI.RequestDecision();
+            //    else whiteThomas.RequestDecision();
+            //}
             timer = 1;
         }
         if (restart == true)

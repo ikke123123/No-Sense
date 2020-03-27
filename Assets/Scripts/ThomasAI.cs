@@ -10,9 +10,6 @@ public class ThomasAI : MonoBehaviour
     private List<Piece> enemyPieces;
     private List<Piece> friendlyPieces;
 
-    private int whiteTurnsCounter = 0;
-    private int blackTurnsCounter = 0;
-
     private void Start()
     {
         enemyPieces = (team == Team.White) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
