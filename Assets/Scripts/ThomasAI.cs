@@ -35,10 +35,6 @@ public class ThomasAI : MonoBehaviour
             PossibleMove greatBadMove = ReturnGreatestBadOption(badMoves);
             PossibleMove greatMove = ReturnGreatestOption(goodMoves.ToArray());
 
-            //Debug.Log(badMoves.Count.ToString() + " " + goodMoves.Count.ToString() + " " + greatMove + " " + greatBadMove);
-
-            //Debug.Log((greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).fromLocation.gridLocation.ToString() + (greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).toLocation.gridLocation.ToString() + (greatMove != null ? "GreatMove" : (goodMoves.Count > 0 ? "GoodMove" : (greatBadMove != null ? "GreatBadMove" : "BadMove"))));
-
             //Execute move
             locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
         }
