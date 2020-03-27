@@ -22,7 +22,7 @@ public class ThomasAI : MonoBehaviour
         List<PossibleMove> badMoves = new List<PossibleMove>();
         List<PossibleMove> goodMoves = new List<PossibleMove>();
 
-        if (friendlyPieces.Count > 1)
+        if (friendlyPieces.Count > 1 || friendlyPieces.Count == 1 && enemyPieces.Count < 3)
         {
             foreach (PossibleMove possibleMove in possibleMoves)
             {
@@ -37,8 +37,9 @@ public class ThomasAI : MonoBehaviour
 
             //Debug.Log(badMoves.Count.ToString() + " " + goodMoves.Count.ToString() + " " + greatMove + " " + greatBadMove);
 
-            //Execute move
             //Debug.Log((greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).fromLocation.gridLocation.ToString() + (greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)]))).toLocation.gridLocation.ToString() + (greatMove != null ? "GreatMove" : (goodMoves.Count > 0 ? "GoodMove" : (greatBadMove != null ? "GreatBadMove" : "BadMove"))));
+
+            //Execute move
             locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
         }
         else
@@ -55,6 +56,19 @@ public class ThomasAI : MonoBehaviour
             if (possibleMove.strike && CheckIfStrickenNextTurn(friendlyPieces, possibleMove.toLocation, team).Length > 1)
             {
                 greatestMove = possibleMove;
+            }
+        }
+        foreach (PossibleMove possibleMove in goodMoves)
+        {
+            foreach (Piece piece in friendlyPieces)
+            {
+                foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, piece.location, team == Team.Black ? Team.White : Team.Black))
+                {
+                    if (possibleMove1.strike && possibleMove1.toLocation.gridLocation == possibleMove.toLocation.gridLocation)
+                    {
+                        greatestMove = greatestMove == null ? possibleMove : greatestMove;
+                    }
+                }
             }
         }
         foreach (PossibleMove possibleMove in goodMoves)

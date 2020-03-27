@@ -86,6 +86,10 @@ public class LocationKeeper : MonoBehaviour
 
     private bool FollowedUp(PossibleMove possibleMove)
     {
+        if (((possibleMove.piece.team == Team.Black && possibleMove.piece.location.gridLocation.x == 0) || (possibleMove.piece.team == Team.White && possibleMove.piece.location.gridLocation.x == 7)) && possibleMove.piece.isSpecialPiece == false)
+        {
+            possibleMove.piece.MakeSpecialPiece();
+        }
         List<PossibleMove> possibleMoves = new List<PossibleMove>();
         if (possibleMove.strike == true)
         {
@@ -101,10 +105,6 @@ public class LocationKeeper : MonoBehaviour
                 turnMoves = possibleMoves.ToArray();
                 return true;
             }
-        }
-        if (((possibleMove.piece.team == Team.Black && possibleMove.piece.location.gridLocation.x == 0) || (possibleMove.piece.team == Team.White && possibleMove.piece.location.gridLocation.x == 7)) && possibleMove.piece.isSpecialPiece == false)
-        {
-            possibleMove.piece.MakeSpecialPiece();
         }
         turn = (turn == Team.Black ? Team.White : Team.Black);
         turnMoves = CheckMoves(turn);
