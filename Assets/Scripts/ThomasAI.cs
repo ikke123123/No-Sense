@@ -171,7 +171,7 @@ public class ThomasAI : MonoBehaviour
                                 if (locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY) == false) break;
                                 int xUltraTemp = 0;
                                 int yUltraTemp = 0;
-                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp) || ((locationKeeper.ValidGridLocation(x + tempX + xUltraTemp, y + tempY + xUltraTemp) && (possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX + xUltraTemp, y + tempY + xUltraTemp] : false))))
+                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp))///|| ((locationKeeper.ValidGridLocation(x + tempX + xUltraTemp, y + tempY + xUltraTemp) && (possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX + xUltraTemp, y + tempY + xUltraTemp] : false))))
                                 {
                                     PossibleMove possibleMove = new PossibleMove
                                     {
