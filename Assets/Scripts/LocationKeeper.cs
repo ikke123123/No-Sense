@@ -18,9 +18,8 @@ public class LocationKeeper : MonoBehaviour
     //[SerializeField] private DeyvidAI whiteDeyvid = null;
 
     [Header("Win Text")]
-    [SerializeField] private GameObject BlackWin = null;
-    [SerializeField] private GameObject WhiteWin = null;
-    [SerializeField] private GameObject draw = null;
+    [SerializeField] private GameObject blackWins = null;
+    [SerializeField] private GameObject whiteWins = null;
 
     [Header("Misc")]
     [SerializeField] private UnityEvent toDoWhenFinished = null;
@@ -120,11 +119,11 @@ public class LocationKeeper : MonoBehaviour
         Debug.Log("Game has ended: " + input);
         if (turn == Team.Black)
         {
-            WhiteWin.SetActive(true);
+            whiteWins.SetActive(true);
         }
         else if (turn == Team.White) 
         {
-            BlackWin.SetActive(true);
+            blackWins.SetActive(true);
         }
         toDoWhenFinished.Invoke();
         restart = true;
@@ -132,8 +131,8 @@ public class LocationKeeper : MonoBehaviour
 
     public void ResetMatch()
     {
-        BlackWin.SetActive(false);
-        WhiteWin.SetActive(false);
+        blackWins.SetActive(false);
+        whiteWins.SetActive(false);
         timeLeft = 6;
         restart = false;
         foreach (Piece piece in whiteObjects) Destroy(piece.gameObject);
