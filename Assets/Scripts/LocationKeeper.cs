@@ -1,309 +1,112 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
 public class LocationKeeper : MonoBehaviour
 {
-    [Header("Grid Spawning")]
-    [SerializeField, Range(1, 15)] private int gridWidth = 1;
-    [SerializeField, Range(1, 15)] private int gridDepth = 1;
-    [SerializeField] private BoardSpawnScript boardSpawn = null;
+    [Header("Prefabs")]
+    public GameObject whitePiecePrefab;
+    public GameObject blackPiecePrefab;
 
-    [Header("AI")]
-    [SerializeField] private ThomasAI blackThomas = null;
-    [SerializeField] private ThomasAI whiteThomas = null;
-    [SerializeField] private DeyvidAI blackDeyvid = null;
-    [SerializeField] private DeyvidAI whiteDeyvid = null;
+    [HideInInspector] public Team currentTurn = Team.White;
 
-    [Header("Win Text")]
-    [SerializeField] private GameObject blackWins = null;
-    [SerializeField] private GameObject whiteWins = null;
+    [HideInInspector] public GridKeeper locationGrid;
 
-    [Header("Misc")]
-    [SerializeField] private UnityEvent toDoWhenFinished = null;
+    [HideInInspector] public List<Piece> pieces;
+    [HideInInspector] public List<PossibleMove> turnMoves;
 
-    [HideInInspector] public Team turn = Team.White;
-    [HideInInspector] public LocationGrid locationGrid = new LocationGrid();
-    [HideInInspector] public List<Piece> whiteObjects;
-    [HideInInspector] public List<Piece> blackObjects;
-    [HideInInspector] public PossibleMove[] turnMoves;
-    [HideInInspector] public bool restart = false;
+    public Dictionary<int, Piece> positionDictionary = new Dictionary<int, Piece>();
 
-    private float timeLeft = 6.0f;
-    private float timer = 1;
+    private const int gridWidth = 4;
+    private const int gridHeight = 8;
+    private const int scale = 2;
 
-    private void Awake()
+    private Vector3 basePos = new Vector3(-scale * 4 + 1, 1.25f, -scale * 4 + 1); //Position at which the board starts.
+
+    private const int startYWhite = 0;
+    private const int endYWhite = 3;
+
+    private const int startYBlack = 5;
+    private const int endYBlack = 8;
+
+    public void Initiate()
     {
-        locationGrid.GenerateGrid(gridWidth, gridDepth);
-        if (boardSpawn != null)
-        {
-            whiteObjects = boardSpawn.GenerateBoard(locationGrid, Team.White);
-            blackObjects = boardSpawn.GenerateBoard(locationGrid, Team.Black);
-        }
-        else Debug.LogWarning("Board Spawn wasn't assigned");
-        turnMoves = CheckMoves(turn);
+        locationGrid = new GridKeeper(gridWidth, gridHeight);
+
+        GenerateBoard(pieces, ref locationGrid);
     }
 
-    private void Update()
+    public List<Piece> GenerateBoard(List<Piece> pieceList, ref GridKeeper gridKeeper)
     {
-        timer -= Time.deltaTime;
-        if (timer <= 0 && restart == false)
-        { 
-            if (turn == Team.Black)
-            {
-                if (blackThomas == null) blackDeyvid.RequestDecision();
-                else blackThomas.RequestDecision();
-            }
-            else
-            {
-                if (whiteThomas == null) whiteDeyvid.RequestDecision();
-                else whiteThomas.RequestDecision();
-            }
-            timer = 1;
-        }
-        if (restart == true)
+        if (pieceList == null)
+            pieceList = new List<Piece>();
+        else pieceList.Clear();
+
+        GenerateTeamBoard(pieceList, ref gridKeeper, Team.White, startYWhite, endYWhite);
+        GenerateTeamBoard(pieceList, ref gridKeeper, Team.Black, startYBlack, endYBlack);
+
+        return pieceList;
+    }
+
+    private void GenerateTeamBoard(List<Piece> pieceList, ref GridKeeper gridKeeper, Team team, int startY, int endY)
+    {
+        GameObject prefab = team == Team.White ? whitePiecePrefab : blackPiecePrefab;
+
+        for (int i = startY * gridWidth; i < endY * gridWidth; i++)
         {
-            timeLeft -= Time.deltaTime;
-            if (timeLeft < 0)
-            {
-                ResetMatch();
-            }
+            //First generate a piece
+            Piece newPiece = Instantiate(prefab).GetComponent<Piece>();
+            pieceList.Add(newPiece);
+            positionDictionary.Add(i, newPiece);
+            newPiece.transform.position = ToPosition(i);
+
+            //Then set the data on the grid keeper.
+            gridKeeper.SetData(i, team, true, false);
         }
     }
 
-    public void ExecuteMove(PossibleMove possibleMove)
+    private Vector3 ToPosition(int position)
     {
-        if (possibleMove.strike) DestroyPiece(possibleMove.hitPiece);
-        possibleMove.piece.MoveTo(possibleMove.toLocation);
-        FollowedUp(possibleMove);
+        float y = Mathf.Floor(position / gridWidth);
+        float x = position % gridWidth * 2 + (y + 1) % 2; //Calculate position, plus switching offset.
+        return new Vector3(x * scale, 0, y * scale) + basePos;
     }
 
-    private bool FollowedUp(PossibleMove possibleMove)
+    private void PossibleMoves(List<PossibleMove> possibleMoves, ref GridKeeper gridKeeper, Team team)
     {
-        if (((possibleMove.piece.team == Team.Black && possibleMove.piece.location.gridLocation.x == 0) || (possibleMove.piece.team == Team.White && possibleMove.piece.location.gridLocation.x == 7)) && possibleMove.piece.isSpecialPiece == false)
+        //Move directions for non-special items are:
+        //-9 and -8 and -7 for white, and 7 and 8 and 9 for black depending on line.
+        //Move directions for special items are:
+        //-9, -8, 8, and 9 for all.
+
+        if (possibleMoves == null)
+            possibleMoves = new List<PossibleMove>();
+        else possibleMoves.Clear();
+
+        int[] moveDirections = new int[2];
+        for (int i = 0; i < gridHeight; i++)
         {
-            possibleMove.piece.MakeSpecialPiece();
+            
         }
-        List<PossibleMove> possibleMoves = new List<PossibleMove>();
-        if (possibleMove.strike == true)
-        {
-            foreach (PossibleMove move in CheckMoves(turn))
-            {
-                if (move.strike == true && move.piece == possibleMove.piece)
-                {
-                    possibleMoves.Add(move);
-                }
-            }
-            if (possibleMoves.Count > 0)
-            {
-                turnMoves = possibleMoves.ToArray();
-                return true;
-            }
-        }
-        turn = (turn == Team.Black ? Team.White : Team.Black);
-        turnMoves = CheckMoves(turn);
-        if (turnMoves.Length == 0)
-        {
-            EndGame(turn.ToString() + " has lost the game.");
-        }
-        return false;
-    }
-
-    public void EndGame(string input)
-    {
-        Debug.Log("Game has ended: " + input);
-        if (turn == Team.Black)
-        {
-            whiteWins.SetActive(true);
-        }
-        else if (turn == Team.White) 
-        {
-            blackWins.SetActive(true);
-        }
-        toDoWhenFinished.Invoke();
-        restart = true;
-    }
-
-    public void ResetMatch()
-    {
-        blackWins.SetActive(false);
-        whiteWins.SetActive(false);
-        timeLeft = 6;
-        restart = false;
-        foreach (Piece piece in whiteObjects) Destroy(piece.gameObject);
-        foreach (Piece piece in blackObjects) Destroy(piece.gameObject);
-        whiteObjects.Clear();
-        blackObjects.Clear();
-        locationGrid.GenerateGrid(gridWidth, gridDepth);
-        if (boardSpawn != null)
-        {
-            whiteObjects = boardSpawn.GenerateBoard(locationGrid, Team.White);
-            blackObjects = boardSpawn.GenerateBoard(locationGrid, Team.Black);
-        }
-        else Debug.LogWarning("Board Spawn wasn't assigned");
-        turnMoves = CheckMoves(turn);
-    }
-
-    private void DestroyPiece(Piece piece)
-    {
-        piece.location.LeaveLocation();
-        (piece.team == Team.Black ? blackObjects : whiteObjects).Remove(piece);
-        Destroy(piece.gameObject);
-    }
-
-    private PossibleMove[] CheckMoves(Team team)
-    {
-        List<PossibleMove> possibleMoves = new List<PossibleMove>();
-
-        bool strike = false;
-        foreach (Piece piece in (team == Team.Black ? blackObjects : whiteObjects))
-        {
-            piece.possibleMoves.Clear();
-            if (piece.isSpecialPiece == false)
-            {
-                for (int x = -1; x < 2; x += 2)
-                {
-                    //Check if it's a valid location
-                    int tempX = x + piece.location.gridLocation.x;
-                    if (ValidGridLocation(tempX, 0))
-                    {
-                        //Check if it's forward or backward
-                        bool forward = (team == Team.Black && x == -1) || (team == Team.White && x == 1) ? true : false;
-
-                        for (int y = -1; y < 2; y += 2)
-                        {
-                            //Check if it's a valid location
-                            int tempY = y + piece.location.gridLocation.y;
-                            if (ValidGridLocation(tempX, tempY))
-                            {
-                                Location tempLocation = locationGrid.locations[tempX, tempY];
-                                if (strike == false && tempLocation.isOccupied == false && forward == true)
-                                {
-                                    PossibleMove possibleMove = new PossibleMove
-                                    {
-                                        piece = piece,
-                                        fromLocation = piece.location,
-                                        toLocation = tempLocation
-                                    };
-                                    possibleMoves.Add(possibleMove);
-                                    piece.possibleMoves.Add(possibleMove);
-                                }
-                                if (tempLocation.isOccupied == true && OccupiedByFriendly(tempX, tempY, team) == false && PositionExistsAndIsFree(x + tempX, y + tempY))
-                                {
-                                    strike = true;
-                                    PossibleMove possibleMove = new PossibleMove
-                                    {
-                                        piece = piece,
-                                        fromLocation = piece.location,
-                                        toLocation = locationGrid.locations[x + tempX, y + tempY],
-                                        strike = true,
-                                        hitPiece = tempLocation.piece
-                                    };
-                                    possibleMoves.Add(possibleMove);
-                                    piece.possibleMoves.Add(possibleMove);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                for (int x = -1; x < 2; x += 2)
-                {
-                    for (int y = -1; y < 2; y += 2)
-                    {
-                        //Check if it's a valid location
-                        int tempX = x + piece.location.gridLocation.x;
-                        int tempY = y + piece.location.gridLocation.y;
-                        //Debug.Log(tempX + " " + tempY);
-                        bool striking = false;
-                        while (ValidGridLocation(tempX, tempY))
-                        {
-                            //Debug.Log(tempX + " " + tempY);
-                            Location tempLocation = locationGrid.locations[tempX, tempY];
-                            if (tempLocation.isOccupied == false)
-                            {
-                                PossibleMove possibleMove = new PossibleMove
-                                {
-                                    piece = piece,
-                                    fromLocation = piece.location,
-                                    toLocation = tempLocation
-                                };
-                                possibleMoves.Add(possibleMove);
-                                piece.possibleMoves.Add(possibleMove);
-                            }
-                            if (tempLocation.isOccupied == true)
-                            {
-                                if (OccupiedByFriendly(tempX, tempY, team) || striking == true) break;
-                                if (PositionExistsAndIsFree(x + tempX, y + tempY) == false) break;
-                                int xUltraTemp = 0;
-                                int yUltraTemp = 0;
-                                while (PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp))
-                                {
-                                    strike = true;
-                                    striking = true;
-                                    PossibleMove possibleMove = new PossibleMove
-                                    {
-                                        piece = piece,
-                                        fromLocation = piece.location,
-                                        toLocation = locationGrid.locations[x + tempX + xUltraTemp, y + tempY + yUltraTemp],
-                                        strike = true,
-                                        hitPiece = tempLocation.piece
-                                    };
-                                    possibleMoves.Add(possibleMove);
-                                    piece.possibleMoves.Add(possibleMove);
-                                    xUltraTemp += x;
-                                    yUltraTemp += y;
-                                }
-                            }
-
-                            tempX += x;
-                            tempY += y;
-                        }
-                    }
-                }
-            }
-        }
-        //Clean if strike is true
-        if (strike)
-        {
-            for (int i = 0; i < possibleMoves.Count; i++)
-            {
-                if (possibleMoves[i].strike == false)
-                {
-                    possibleMoves[i].piece.possibleMoves.Remove(possibleMoves[i]);
-                    possibleMoves.Remove(possibleMoves[i]);
-                    i--;
-                }
-            }
-        }
-        return possibleMoves.ToArray();
-    }
-
-    public bool PositionExistsAndIsFree(int x, int y)
-    {
-        return ValidGridLocation(x, y) ? (locationGrid.locations[x, y].isOccupied ? false : true) : false;
-    }
-
-    public bool OccupiedByFriendly(int x, int y, Team team)
-    {
-        return (team == Team.Black ? blackObjects : whiteObjects).Contains(locationGrid.locations[x, y].piece);
-    }
-
-    public bool ValidGridLocation(int x, int y)
-    {
-        return (x < locationGrid.locations.GetLength(0) && x > -1) && (y < locationGrid.locations.GetLength(1) && y > -1);
     }
 }
 
-public class PossibleMove
+//public class PossibleMove
+//{
+//    public Piece piece = null;
+//    public Vector2Int fromLocation;
+//    public Vector2Int toLocation;
+//    public bool strike = false;
+//    public Piece hitPiece;
+//}
+
+public struct PossibleMove
 {
-    public Piece piece = null;
-    public Location fromLocation = null;
-    public Location toLocation = null;
-    public bool strike = false;
-    public Piece hitPiece;
+    public LocationKeeper resultingLocationKeeper;
+    public int score;
+    public int startPos;
+    public int endPos;
+    public int strikePos;
 }
