@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThomasAI : MonoBehaviour
+public class DeyvidAI : MonoBehaviour
 {
     [SerializeField] private LocationKeeper locationKeeper = null;
     [SerializeField] private Team team = Team.Black;
 
-    private List<Piece> enemyPieces;
-    private List<Piece> friendlyPieces;
+    private List<Piece> enemyPawns;
+    private List<Piece> ownPawns;
 
     private void Start()
     {
-        enemyPieces = (team == Team.White) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
-        friendlyPieces = (team == Team.Black) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
+        enemyPawns = (team == Team.White) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
+        ownPawns = (team == Team.Black) ? locationKeeper.blackObjects : locationKeeper.whiteObjects;
     }
 
     public void RequestDecision()
@@ -22,99 +22,78 @@ public class ThomasAI : MonoBehaviour
         List<PossibleMove> badMoves = new List<PossibleMove>();
         List<PossibleMove> goodMoves = new List<PossibleMove>();
 
-        if (friendlyPieces.Count > 1 || friendlyPieces.Count == 1 && enemyPieces.Count < 3)
+        if (ownPawns.Count > 1)
         {
             foreach (PossibleMove possibleMove in possibleMoves)
             {
-                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black, possibleMove).Length > 0 && possibleMove.strike == false)
+                if (CheckIfStrickenNextTurn(enemyPawns, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 0 && possibleMove.strike == false)
                 {
                     badMoves.Add(possibleMove);
                 }
                 else goodMoves.Add(possibleMove);
             }
-            PossibleMove greatBadMove = ReturnGreatestBadOption(badMoves);
-            PossibleMove greatMove = ReturnGreatestOption(goodMoves.ToArray());
-
-            //Execute move
-            locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[Random.Range(0, goodMoves.Count)] : (greatBadMove != null ? greatBadMove : badMoves[Random.Range(0, badMoves.Count)])));
+            PossibleMove worstMove = ReturnWorstOption(badMoves);
+            PossibleMove greatMove = ReturnBestOption(goodMoves.ToArray());
+            locationKeeper.ExecuteMove(greatMove != null ? greatMove : (goodMoves.Count > 0 ? goodMoves[0] : (worstMove != null ? worstMove : badMoves[0])));
         }
         else
         {
-            locationKeeper.ExecuteMove(possibleMoves[Random.Range(0, possibleMoves.Length)]);
+            locationKeeper.ExecuteMove(possibleMoves[0]);
         }
     }
 
-    private PossibleMove ReturnGreatestOption(PossibleMove[] goodMoves)
+    private PossibleMove ReturnBestOption(PossibleMove[] goodMoves)
     {
+        PossibleMove bestMove = null;
         foreach (PossibleMove possibleMove in goodMoves)
         {
-            if (possibleMove.strike && CheckIfStrickenNextTurn(friendlyPieces, possibleMove.toLocation, team, possibleMove).Length > 1)
+            if (possibleMove.strike && CheckIfStrickenNextTurn(ownPawns, possibleMove.toLocation, team).Length > 1)
             {
-                return possibleMove;
-            }
-        }
-        foreach (PossibleMove possibleMove in goodMoves)
-        {
-            foreach (Piece piece in friendlyPieces)
-            {
-                foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, piece.location, team == Team.Black ? Team.White : Team.Black, possibleMove))
-                {
-                    if (possibleMove1.strike && possibleMove1.toLocation.gridLocation == possibleMove.toLocation.gridLocation)
-                    {
-                        return possibleMove;
-                    }
-                }
+                bestMove = possibleMove;
             }
         }
         foreach (PossibleMove possibleMove in goodMoves)
         {
             if (possibleMove.toLocation.gridLocation.x == (team == Team.Black ? 0 : 7) && possibleMove.piece.isSpecialPiece == false)
             {
-                return possibleMove;
+                bestMove = bestMove == null ? possibleMove : bestMove;
             }
         }
         foreach (PossibleMove possibleMove in goodMoves)
         {
             if (possibleMove.toLocation.gridLocation.y == 0 || possibleMove.toLocation.gridLocation.y == 7)
             {
-                return possibleMove;
+                bestMove = bestMove == null ? possibleMove : bestMove;
             }
         }
-        return null;
+        return bestMove;
     }
 
-    private PossibleMove ReturnGreatestBadOption(List<PossibleMove> badMoves)
+    private PossibleMove ReturnWorstOption(List<PossibleMove> badMoves)
     {
         PossibleMove greatestOption = null;
-        List<PossibleMove> reallyBadPossibleMoves = new List<PossibleMove>();
         //Run for every bad move
         foreach (PossibleMove possibleMove in badMoves)
         {
             //Check for end locations of enemy strikes on friendly pieces
-            foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPieces, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black, possibleMove))
+            foreach (PossibleMove possibleMove1 in CheckIfStrickenNextTurn(enemyPawns, possibleMove.toLocation, team == Team.Black ? Team.White : Team.Black))
             {
                 //Check for possible counters to that strike
-                foreach (PossibleMove possibleMove2 in CheckIfStrickenNextTurn(friendlyPieces, possibleMove1.toLocation, team, possibleMove))
+                foreach (PossibleMove possibleMove2 in CheckIfStrickenNextTurn(ownPawns, possibleMove1.toLocation, team))
                 {
-                    greatestOption = possibleMove;
+                    greatestOption = greatestOption == null ? possibleMove : greatestOption;
+                    //Check for the possibility that the enemy is able to strike back after that
+                    if (CheckIfStrickenNextTurn(enemyPawns, possibleMove2.toLocation, team == Team.Black ? Team.White : Team.Black).Length == 0)
+                    {
+                        greatestOption = possibleMove;
+                    }
                 }
-                if (CheckIfStrickenNextTurn(enemyPieces, possibleMove1.toLocation, team == Team.Black ? Team.White : Team.Black).Length > 1)
-                {
-                    reallyBadPossibleMoves.Add(possibleMove);
-                }
-            }
-        }
-        if (badMoves.Count > reallyBadPossibleMoves.Count)
-        {
-            foreach (PossibleMove reallyBadPossibleMove in reallyBadPossibleMoves)
-            {
-                badMoves.Remove(reallyBadPossibleMove);
             }
         }
         return greatestOption;
     }
 
-    private PossibleMove[] CheckIfStrickenNextTurn(List<Piece> list, Location location, Team team, PossibleMove possibleMoveFrom = null)
+    private PossibleMove[] CheckIfStrickenNextTurn(List<Piece> list, Location location, Team team)
     {
         List<PossibleMove> possibleMoves = new List<PossibleMove>();
 
@@ -136,7 +115,7 @@ public class ThomasAI : MonoBehaviour
                             if (locationKeeper.ValidGridLocation(tempX, tempY))
                             {
                                 Location tempLocation = locationKeeper.locationGrid.locations[tempX, tempY];
-                                if (tempLocation == location && locationKeeper.OccupiedByFriendly(tempX, tempY, team) == false && (locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY) || possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX, y + tempY] : false))
+                                if (tempLocation == location && locationKeeper.OccupiedByFriendly(tempX, tempY, team) == false && locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY))
                                 {
                                     PossibleMove possibleMove = new PossibleMove
                                     {
@@ -171,7 +150,7 @@ public class ThomasAI : MonoBehaviour
                                 if (locationKeeper.PositionExistsAndIsFree(x + tempX, y + tempY) == false) break;
                                 int xUltraTemp = 0;
                                 int yUltraTemp = 0;
-                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp))///|| ((locationKeeper.ValidGridLocation(x + tempX + xUltraTemp, y + tempY + xUltraTemp) && (possibleMoveFrom == null ? possibleMoveFrom.fromLocation == locationKeeper.locationGrid.locations[x + tempX + xUltraTemp, y + tempY + xUltraTemp] : false))))
+                                while (locationKeeper.PositionExistsAndIsFree(x + tempX + xUltraTemp, y + tempY + yUltraTemp))
                                 {
                                     PossibleMove possibleMove = new PossibleMove
                                     {
