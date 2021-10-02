@@ -3,53 +3,55 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class LocationGrid
+public struct LocationGrid
 {
-    public Location[,] locations;
-
-    public void GenerateGrid(int width, int depth, float scale = 2)
+    public LocationGrid(int width, int height)
     {
-        if (width == 0 || depth == 0) return;
-        locations = new Location[width, depth];
-        bool falseLocation = true;
-        Vector3 basePos = new Vector3(-0.5f * width * scale + ((width % 2 == 0) ? 0.5f * scale : 0), 1.25f, -0.5f * depth * scale + ((depth % 2 == 0) ? 0.5f * scale : 0));
-        for (int i = 0; i < width; i++)
+        if (width == 0 || height == 0)
+            Debug.LogError("The grid is too small.");
+
+        locations = new Location[width, height];
+
+        for (int y = 0; y < height; y++)
         {
-            for (int j = 0; j < depth; j++)
+            for (int x = Location.GetXOffset(y); x < width; x += 2)
             {
-                locations[i, j] = new Location
-                {
-                    validLocation = falseLocation,
-                    position = basePos + new Vector3(i * scale, 0, j * scale),
-                    gridLocation = new Vector2Int(i, j)
-                };
-                if (j < width - 1)
-                {
-                    if (falseLocation) falseLocation = false; else falseLocation = true;
-                }
+                locations[x, y] = new Location(new Vector2Int(x, y), null);
             }
         }
     }
+
+    public Location[,] locations;
 }
 
 public class Location
 {
-    public void LeaveLocation()
+    public Location(Vector2Int gridLocation, Piece piece)
     {
-        isOccupied = false;
-        piece = null;
+        this.gridLocation = gridLocation;
+        this.piece = piece;
     }
 
-    public void OccupyLocation(Piece input)
-    {
-        isOccupied = true;
-        piece = input;
-    }
+    public void LeaveLocation() => piece = null;
+
+    public void OccupyLocation(Piece input) => piece = input;
 
     //Put all position dependent variables in here
-    public Vector3 position;
     public Vector2Int gridLocation;
-    public bool validLocation = false;
-    public bool isOccupied = false;
-    public Piece piece = null;
+    public Piece piece;
+
+    public bool IsOccupied => piece != null;
+
+    public Vector3 Position => new Vector3
+    {
+        x = LocationKeeper.origin.x + gridLocation.x * LocationKeeper.tileScale,
+        y = LocationKeeper.origin.y,
+        z = LocationKeeper.origin.z + gridLocation.y * LocationKeeper.tileScale
+    };
+
+    //Because the board only works with half the tiles, the offset per column is calculated here.
+    public static int GetXOffset(int y)
+    {
+        return (y + 1) % 2;
+    }
 }

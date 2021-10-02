@@ -6,41 +6,38 @@ using UnityEngine;
 public class Piece : MonoBehaviour
 {
     [SerializeField] private GameObject prefab = null;
-    [SerializeField] private Vector2Int gridLocation;
+    [SerializeField] private float speed = 0.2f;
+
+    public Vector2Int Position => location.gridLocation;
 
     [HideInInspector] public Location location;
-    [HideInInspector] public List<PossibleMove> possibleMoves = new List<PossibleMove>();
     [HideInInspector] public bool isSpecialPiece = false;
     [HideInInspector] public Team team;
 
-    private Vector3 targetPosition;
-    private float speed = 0;
-    private float step = 0;
-    private float speedTarget = 0;
     AudioSource sound;
-    private void Start()
+
+    private void OnEnable()
     {
-        targetPosition = location.position;
         sound = GetComponent<AudioSource>();
     }
 
-    private void FixedUpdate()
+    public IEnumerator Move(Vector3 targetPos)
     {
-        gridLocation = location.gridLocation;
-        speed += speed >= speedTarget ? -step : step;
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed);
+        while (transform.position != targetPos)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, speed);
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     public bool MoveTo(Location target)
     {
-        sound.Play(0);
-        if (target.isOccupied) return false; 
+        sound.Play();
+        if (target.IsOccupied) 
+            return false; 
         location.LeaveLocation();
         target.OccupyLocation(this);
-        targetPosition = target.position;
-        speed = 0;
-        step = Vector3.Distance(transform.position, targetPosition) / 45;
-        speedTarget = step * 2;
+        StartCoroutine(Move(target.Position));
         location = target;
         return true;
     }
