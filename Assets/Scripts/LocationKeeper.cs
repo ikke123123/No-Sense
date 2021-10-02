@@ -17,7 +17,7 @@ public class LocationKeeper : MonoBehaviour
     [HideInInspector] public List<Piece> pieces;
     [HideInInspector] public List<PossibleMove> turnMoves;
 
-    public Dictionary<int, Piece> positionDictionary = new Dictionary<int, Piece>();
+    public Dictionary<Vector2Int, Piece> positionDictionary = new Dictionary<Vector2Int, Piece>();
 
     private const int gridWidth = 4;
     private const int gridHeight = 8;
@@ -44,34 +44,55 @@ public class LocationKeeper : MonoBehaviour
             pieceList = new List<Piece>();
         else pieceList.Clear();
 
-        GenerateTeamBoard(pieceList, ref gridKeeper, Team.White, startYWhite, endYWhite);
-        GenerateTeamBoard(pieceList, ref gridKeeper, Team.Black, startYBlack, endYBlack);
+        positionDictionary.Clear();
+
+        GenerateTeamBoard(pieceList, ref gridKeeper, Team.White, whitePiecePrefab, ref gridKeeper.whitePieces, startYWhite, endYWhite);
+        GenerateTeamBoard(pieceList, ref gridKeeper, Team.Black, blackPiecePrefab, ref gridKeeper.blackPieces, startYBlack, endYBlack);
 
         return pieceList;
     }
 
-    private void GenerateTeamBoard(List<Piece> pieceList, ref GridKeeper gridKeeper, Team team, int startY, int endY)
+    /// <summary>
+    /// Yeah this is a bit long.
+    /// </summary>
+    /// <param name="gridKeeperPos">This is the int array that maintains the positions of all the pieces for easy access.</param>
+    private void GenerateTeamBoard(List<Piece> pieceList, ref GridKeeper gridKeeper, Team team, GameObject prefab, ref Vector2Int[] gridKeeperPos, int startY, int endY)
     {
-        GameObject prefab = team == Team.White ? whitePiecePrefab : blackPiecePrefab;
+        //Number of pieces that must be fit into the array initially.
+        gridKeeperPos = new Vector2Int[gridWidth * (endY - startY)];
 
-        for (int i = startY * gridWidth; i < endY * gridWidth; i++)
+        int j = 0;
+
+        for (int y = 0; y < gridHeight; y++)
         {
-            //First generate a piece
-            Piece newPiece = Instantiate(prefab).GetComponent<Piece>();
-            pieceList.Add(newPiece);
-            positionDictionary.Add(i, newPiece);
-            newPiece.transform.position = ToPosition(i);
+            for (int x = 0; x < gridWidth; x++)
+            {
+                Vector2Int gridPos = new Vector2Int(x, y);
 
-            //Then set the data on the grid keeper.
-            gridKeeper.SetData(i, team, true, false);
+                //First generate a piece
+                Piece newPiece = Instantiate(prefab).GetComponent<Piece>();
+                pieceList.Add(newPiece);
+
+                //Add it to the dictionary so we can access it later.
+                positionDictionary.Add(gridPos, newPiece);
+
+                //Set its position to an actual good position on the board.
+                newPiece.transform.position = ToPosition(gridPos);
+
+                //Refer to the position of the ones in the grid keeper.
+                gridKeeperPos[j] = gridPos;
+                j++;
+
+                //Then set the data on the grid keeper.
+                gridKeeper.SetData(gridPos, team, true, false);
+            }
         }
     }
 
-    private Vector3 ToPosition(int position)
+    private Vector3 ToPosition(Vector2Int position)
     {
-        float y = Mathf.Floor(position / gridWidth);
-        float x = position % gridWidth * 2 + (y + 1) % 2; //Calculate position, plus switching offset.
-        return new Vector3(x * scale, 0, y * scale) + basePos;
+        float x = position.x * 2 + (position.y + 1) % 2; //Calculate position, plus switching offset.
+        return new Vector3(x * scale, 0, position.y * scale) + basePos;
     }
 
     private void PossibleMoves(List<PossibleMove> possibleMoves, ref GridKeeper gridKeeper, Team team)
@@ -85,10 +106,12 @@ public class LocationKeeper : MonoBehaviour
             possibleMoves = new List<PossibleMove>();
         else possibleMoves.Clear();
 
-        int[] moveDirections = new int[2];
-        for (int i = 0; i < gridHeight; i++)
+        Vector2Int[] selectedPlayers = team == Team.White ? gridKeeper.whitePieces : gridKeeper.blackPieces; 
+
+        for (int i = 0; i < selectedPlayers.Length; i++)
         {
-            
+            //Check possible movements for all pawns.
+
         }
     }
 }
@@ -105,7 +128,6 @@ public class LocationKeeper : MonoBehaviour
 public struct PossibleMove
 {
     public LocationKeeper resultingLocationKeeper;
-    public int score;
     public int startPos;
     public int endPos;
     public int strikePos;

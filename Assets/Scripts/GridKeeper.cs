@@ -16,6 +16,9 @@ public struct GridKeeper
         storage = new byte[Mathf.CeilToInt(width * height * dataSize / 8f)];
 
         maxPosition = width * height;
+
+        whitePieces = new Vector2Int[0];
+        blackPieces = new Vector2Int[0];
     }
 
     public int Hash => AddAllToHash(storage);
@@ -27,6 +30,9 @@ public struct GridKeeper
     public int MaxPosition => maxPosition;
 
     public byte[] storage;
+    //To easily maintain contact with pieces.
+    public Vector2Int[] whitePieces;
+    public Vector2Int[] blackPieces;
 
     private int width, height, maxPosition;
 
@@ -34,23 +40,68 @@ public struct GridKeeper
 
     //Typical starter grid:
     //----------------------------------------
-    // 1000 1000 1000 1000
-    // 1000 1000 1000 1000
+    // 1000 1000 1000 1000    
+    // 1000 1000 1000 1000    
     // 1000 1000 1000 1000
     // 0000 0000 0000 0000
     // 0000 0000 0000 0000 <
     // 1100 1100 1100 1100 
     // 1100 1100 1100 1100
-    // 1100 1100 1100 1100
+    // 1100 1100 1100 1100     
     //           ^
     //----------------------------------------
+    //I'm beginning to think I should have saved this as a string, like they do with chess.
 
-    public void GetData(int position, out bool isOccupied, out bool whiteTeam, out bool isSpecial)
+    /// <summary>
+    /// Moves pawn, also automatically upgrades it if it reaches the other side.
+    /// </summary>
+    /// <param name="fromPosition"></param>
+    /// <param name="toPosition"></param>
+    /// <returns></returns>
+    public bool Move(Vector2Int fromPosition, Vector2Int toPosition)
     {
-        if (position < 0 || position > maxPosition)
+        if (!CheckValidPosition(fromPosition) || !CheckValidPosition(toPosition))
+            return false;
+
+        bool isOccupied, isSpecial, toReturn = false;
+        Team team;
+        GetData(fromPosition, out isOccupied, out team, out isSpecial);
+
+        if (!isOccupied)
+            return false;
+
+        if (!isSpecial)
+        {
+            //Checks if the item should be upgraded to a special one.
+            if ((team == Team.White && toPosition.y == 0) || (team == Team.Black && toPosition.y == height))
+            {
+                isSpecial = toReturn = true;
+            }
+        }
+
+        //Sets the data of the from position back to false.
+        SetData(fromPosition, team, false, false);
+
+        //Overwrites the data of the toPosition.
+        SetData(toPosition, team, true, isSpecial);
+
+        return toReturn;
+    }
+
+    /// <summary>
+    /// Returns true when it is a valid position.
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    public bool CheckValidPosition(Vector2Int pos) => pos.x > -1 && pos.x <= width && pos.y > -1 && pos.y <= height;
+
+    public void GetData(Vector2Int position, out bool isOccupied, out Team team, out bool isSpecial)
+    {
+        if (position.x < 0 || position.x > width || position.y < 0 || position.y > height)
         {
             Debug.LogError("Invalid input was: " + position + " should be between " + 0 + " and " + MaxPosition);
-            isOccupied = isSpecial = whiteTeam = false;
+            isOccupied = isSpecial = false;
+            team = Team.White;
             return;
         }
 
@@ -58,13 +109,13 @@ public struct GridKeeper
         GetIndexOfPos(position, out possessedByteIndex, out colorByteIndex, out specialByteIndex, out possessedIndex, out colorIndex, out specialIndex);
 
         isOccupied = GetBitData(ref storage, possessedByteIndex, possessedIndex);
-        whiteTeam = GetBitData(ref storage, colorByteIndex, colorIndex);
+        team = GetBitData(ref storage, colorByteIndex, colorIndex) ? Team.White : Team.Black;
         isSpecial = GetBitData(ref storage, specialByteIndex, specialIndex);
     }
 
-    public void SetData(int position, Team team, bool isOccupied, bool isSpecial)
+    public void SetData(Vector2Int position, Team team, bool isOccupied, bool isSpecial)
     {
-        if (position < 0 || position > maxPosition)
+        if (position.x < 0 || position.x > width || position.y < 0 || position.y > height)
         {
             Debug.LogError("Invalid input was: " + position + " should be between " + 0 + " and " + MaxPosition);
             return;
@@ -78,12 +129,12 @@ public struct GridKeeper
         SetBitData(ref storage, specialByteIndex, specialIndex, isSpecial);
     }
 
-    private int GetStandardIndex(int position)
+    private int GetStandardIndex(Vector2Int position)
     {
-        return position * dataSize;
+        return (position.x + position.y * width) * dataSize;
     }
 
-    private void GetIndexOfPos(int position, out int possessedByteIndex, out int colorByteIndex, out int specialByteIndex, out int possessedIndex, out int colorIndex, out int specialIndex)
+    private void GetIndexOfPos(Vector2Int position, out int possessedByteIndex, out int colorByteIndex, out int specialByteIndex, out int possessedIndex, out int colorIndex, out int specialIndex)
     {
         //Gets absolute location of possessedIndex.
         possessedIndex = GetStandardIndex(position);
